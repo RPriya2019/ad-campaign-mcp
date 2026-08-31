@@ -1,0 +1,30 @@
+{
+    "name": "ad-campaign-mcp",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "dev": "tsx src/index.ts",
+        "api": "tsx src/api.ts",
+        "build": "tsc",
+        "start": "node dist/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.30.0",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1",
+        "pg": "^8.23.0",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.6",
+        "@types/node": "^26.4.0",
+        "@types/pg": "^8.23.1",
+        "tsx": "^4.23.12",
+        "typescript": "^6.0.3"
+    }
+}
