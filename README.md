@@ -31,6 +31,7 @@ Postgres (docker-compose.yml)
 ## Getting started
 
 ```bash
+cp .env.example .env      # then set DB_PASSWORD and API_KEY (openssl rand -hex 32)
 docker compose up -d      # start Postgres
 npm install
 npm run api                # start the REST API on :3000
@@ -44,8 +45,15 @@ since it skips on-the-fly TypeScript transpilation — worth using for an
 MCP client that spawns the server, since `Client.connect()` has a
 default 60s handshake timeout.
 
-The API URL defaults to `http://localhost:3000`; override it with the
-`API_BASE_URL` environment variable if the REST API runs elsewhere.
+All configuration lives in `.env` (git-ignored; see `.env.example`).
+`src/config.ts` loads it relative to the project root, so it is found
+even when an MCP client spawns the server from another directory. The
+API URL defaults to `http://localhost:3000`; override it with
+`API_BASE_URL` if the REST API runs elsewhere.
+
+Every REST API request must send the `x-api-key` header matching
+`API_KEY`; the MCP server does this automatically. Postgres and the API
+listen on `127.0.0.1` only.
 
 ## Sample API calls
 
@@ -56,7 +64,7 @@ seed a row directly via SQL first, or the calls below just return `[]`
 ### Seed a campaign (direct SQL)
 
 ```bash
-docker exec -it ad-campaign-postgres psql -U postgres -d adplatform -c "
+docker exec -it ad-campaign-postgres psql -U "$DB_USER" -d adplatform -c "
 INSERT INTO advertisers (name) VALUES ('Acme Corp') RETURNING id;
 -- suppose that returns id = 1
 INSERT INTO campaigns (id, advertiser_id, name, status, budget, start_date, end_date)
@@ -67,7 +75,8 @@ VALUES ('camp_001', 1, 'Summer Launch', 'active', 5000.00, '2026-06-01', '2026-0
 ### `GET /campaigns` — list all
 
 ```bash
-curl http://localhost:3000/campaigns
+source .env   # makes $API_KEY available in this shell
+curl -H "x-api-key: $API_KEY" http://localhost:3000/campaigns
 ```
 
 ```json
@@ -89,13 +98,13 @@ curl http://localhost:3000/campaigns
 ### `GET /campaigns?status=active` — filtered by status
 
 ```bash
-curl "http://localhost:3000/campaigns?status=active"
+curl -H "x-api-key: $API_KEY" "http://localhost:3000/campaigns?status=active"
 ```
 
 ### `GET /campaigns/:id` — single campaign
 
 ```bash
-curl http://localhost:3000/campaigns/camp_001
+curl -H "x-api-key: $API_KEY" http://localhost:3000/campaigns/camp_001
 ```
 
 Returns the same object as above, unwrapped from the array.
@@ -103,7 +112,7 @@ Returns the same object as above, unwrapped from the array.
 ### `GET /campaigns/:id` — not found
 
 ```bash
-curl -i http://localhost:3000/campaigns/does-not-exist
+curl -i -H "x-api-key: $API_KEY" http://localhost:3000/campaigns/does-not-exist
 ```
 
 ```
@@ -131,8 +140,7 @@ results.
 
 ## Known limitations
 
-- The REST API has no authentication — anything reaching `:3000` can
-  read campaign data.
+- Authentication is a single shared API key — fine for local use.
 - No `POST`/`PUT` endpoints yet — campaigns can only be seeded directly
   via SQL, not created through the API or the MCP tools.
 

@@ -1,8 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { requireEnv } from "./config.js";
 
 const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:3000";
+const API_HEADERS = { "x-api-key": requireEnv("API_KEY") };
 
 const server = new McpServer({
   name: "ad-campaign-mcp",
@@ -25,7 +27,7 @@ server.registerTool(
     if (status) url.searchParams.set("status", status);
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { headers: API_HEADERS });
 
       if (!response.ok) {
         return {
@@ -77,7 +79,7 @@ server.registerTool(
     const url = new URL(`/campaigns/${encodeURIComponent(id)}`, API_BASE_URL);
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { headers: API_HEADERS });
 
       if (response.status === 404) {
         return {
