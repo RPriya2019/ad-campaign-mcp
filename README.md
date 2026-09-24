@@ -140,8 +140,7 @@ results.
 
 ## Known limitations
 
-- Authentication is a single shared API key — fine for local use, but
-  there are no per-user accounts or permissions.
+- Authentication is a single shared API key — fine for local use.
 - No `POST`/`PUT` endpoints yet — campaigns can only be seeded directly
   via SQL, not created through the API or the MCP tools.
 
