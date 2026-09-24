@@ -1,8 +1,27 @@
 import express from "express";
+import { timingSafeEqual } from "node:crypto";
+import { requireEnv } from "./config.js";
 import { initializeDatabase, pool } from "./db.js";
+
+const API_KEY = requireEnv("API_KEY");
+
+function isValidApiKey(provided: string | undefined): boolean {
+  if (!provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(API_KEY);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 const app = express();
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  if (!isValidApiKey(req.get("x-api-key"))) {
+    return res.status(401).json({ error: "Invalid or missing API key" });
+  }
+  next();
+});
 
 
 app.get("/campaigns", async (req, res) => {
@@ -67,7 +86,7 @@ app.get("/campaigns/:id", async (req, res) => {
 });
 initializeDatabase()
   .then(() => {
-    app.listen(3000, () => {
+    app.listen(3000, "127.0.0.1", () => {
       console.log("Campaign API running on http://localhost:3000");
     });
   })
