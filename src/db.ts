@@ -1,13 +1,14 @@
 import pg from "pg";
+import { requireEnv } from "./config.js";
 
 const { Pool } = pg;
 
 export const pool = new Pool({
-  host: "localhost",
-  port: 5432,
-  user: "postgres",
-  password: "postgres",
-  database: "adplatform",
+  host: process.env.DB_HOST ?? "localhost",
+  port: Number(process.env.DB_PORT ?? 5432),
+  user: requireEnv("DB_USER"),
+  password: requireEnv("DB_PASSWORD"),
+  database: process.env.DB_NAME ?? "adplatform",
 });
 
 export async function initializeDatabase() {
